@@ -4,7 +4,12 @@
     <h1 style="font-size:1.5rem;font-weight:800;margin-bottom:8px;">📢 Post Your Ad</h1>
     <p style="color:var(--text-muted);margin-bottom:28px;font-size:.9rem;">Fill in the details below to list your item for sale.</p>
 
-    <form action="/products" method="POST" enctype="multipart/form-data">
+    <div id="flashMsg" style="display:none;padding:12px;border-radius:8px;margin-bottom:16px;"></div>
+
+    <form id="productForm" action="/products" method="POST">
+      <!-- Hidden field for Firebase Storage image URL -->
+      <input type="hidden" name="image_url" id="imageUrlField"/>
+
       <div class="form-group">
         <label class="form-label">Product Title *</label>
         <input type="text" name="title" class="form-input" placeholder="e.g. Engineering Maths Textbook R2017" required maxlength="200"/>
@@ -60,21 +65,43 @@
             <div style="font-size:.8rem;color:var(--text-muted)">JPG, PNG, GIF up to 5MB</div>
           </div>
           <img id="imagePreview" style="display:none;max-width:100%;max-height:200px;border-radius:8px;"/>
+          <div id="uploadProgress" style="display:none;margin-top:12px;">
+            <div style="height:6px;background:var(--border);border-radius:3px;">
+              <div id="progressBar" style="height:6px;background:var(--primary);border-radius:3px;width:0%;transition:width .3s;"></div>
+            </div>
+            <p style="font-size:.8rem;color:var(--text-muted);margin-top:6px;" id="progressText">Uploading...</p>
+          </div>
         </div>
-        <input type="file" name="image" id="imageInput" accept="image/*" style="display:none" onchange="previewImage(this)"/>
+        <input type="file" id="imageInput" accept="image/*" style="display:none" onchange="uploadToFirebase(this)"/>
       </div>
 
-      <button type="submit" class="btn btn-primary" style="width:100%;padding:14px;font-size:1rem;font-weight:700;">
+      <button type="submit" id="submitBtn" class="btn btn-primary" style="width:100%;padding:14px;font-size:1rem;font-weight:700;">
         🚀 Post Ad Now
       </button>
     </form>
   </div>
 </main>
 
+<!-- Firebase Storage Upload -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
 <script>
-function previewImage(input) {
-  const file = input.files[0];
-  if (file) {
+  const firebaseConfig = {
+    apiKey: "AIzaSyAhOlcSqVZw8hUQ8XGJ9xA8QUNmF0-wMgI",
+    authDomain: "olxx-cc881.firebaseapp.com",
+    projectId: "olxx-cc881",
+    storageBucket: "olxx-cc881.firebasestorage.app",
+    messagingSenderId: "723991977197",
+    appId: "1:723991977197:web:a1312e7b57ebec9a9d40e4"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  const storage = firebase.storage();
+
+  function uploadToFirebase(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    // Preview
     const reader = new FileReader();
     reader.onload = e => {
       document.getElementById('imagePreview').src = e.target.result;
@@ -82,8 +109,38 @@ function previewImage(input) {
       document.getElementById('uploadPlaceholder').style.display = 'none';
     };
     reader.readAsDataURL(file);
+
+    // Upload
+    document.getElementById('uploadProgress').style.display = 'block';
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('submitBtn').textContent = '⏳ Uploading image...';
+
+    const ref = storage.ref('products/' + Date.now() + '_' + file.name);
+    const task = ref.put(file);
+
+    task.on('state_changed',
+      snapshot => {
+        const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+        document.getElementById('progressBar').style.width = pct + '%';
+        document.getElementById('progressText').textContent = 'Uploading... ' + pct + '%';
+      },
+      err => {
+        console.error(err);
+        document.getElementById('progressText').textContent = '❌ Upload failed. You can still post without image.';
+        document.getElementById('submitBtn').disabled = false;
+        document.getElementById('submitBtn').textContent = '🚀 Post Ad Now';
+      },
+      () => {
+        task.snapshot.ref.getDownloadURL().then(url => {
+          document.getElementById('imageUrlField').value = url;
+          document.getElementById('progressText').textContent = '✅ Image uploaded!';
+          document.getElementById('progressBar').style.width = '100%';
+          document.getElementById('submitBtn').disabled = false;
+          document.getElementById('submitBtn').textContent = '🚀 Post Ad Now';
+        });
+      }
+    );
   }
-}
 </script>
 
 <style>
@@ -96,6 +153,6 @@ function previewImage(input) {
   transition: all .2s;
   background: var(--bg-secondary);
 }
-.upload-area:hover { border-color: var(--primary); background: rgba(var(--primary-rgb), .05); }
+.upload-area:hover { border-color: var(--primary); background: rgba(108,99,255,.05); }
 </style>
 <%- include('../partials/footer') %>

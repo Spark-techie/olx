@@ -74,7 +74,7 @@ const Product = {
       location,
       condition_type: condition_type || 'Good',
       status: 'active',
-      is_approved: false,
+      is_approved: true,
       views: 0,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()

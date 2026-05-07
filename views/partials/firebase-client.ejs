@@ -1,7 +1,7 @@
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
+<!-- Firebase Google Sign-In -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script>
   const firebaseConfig = {
     apiKey: "AIzaSyAhOlcSqVZw8hUQ8XGJ9xA8QUNmF0-wMgI",
     authDomain: "olxx-cc881.firebaseapp.com",
@@ -11,34 +11,40 @@
     appId: "1:723991977197:web:a1312e7b57ebec9a9d40e4"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
 
-  window.handleGoogleLogin = async function() {
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      
-      const response = await fetch('/auth/google-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: user.email,
-          full_name: user.displayName,
-          profile_image: user.photoURL
-        })
+  function handleGoogleLogin() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.addScope('email');
+    provider.addScope('profile');
+
+    firebase.auth().signInWithPopup(provider)
+      .then(function(result) {
+        const user = result.user;
+        return fetch('/auth/google-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: user.email,
+            full_name: user.displayName,
+            profile_image: user.photoURL
+          })
+        });
+      })
+      .then(function(response) { return response.json(); })
+      .then(function(data) {
+        if (data.success) {
+          window.location.href = data.redirectUrl;
+        } else {
+          alert('⚠️ ' + (data.error || 'Login failed. Make sure you use your college email.'));
+        }
+      })
+      .catch(function(error) {
+        console.error(error);
+        if (error.code === 'auth/popup-closed-by-user') return;
+        alert('Google Sign-In Error: ' + error.message);
       });
-      
-      const data = await response.json();
-      if (data.success) {
-        window.location.href = data.redirectUrl;
-      } else {
-        alert(data.error || 'Login failed');
-      }
-    } catch (error) {
-      console.error(error);
-      alert('Google Sign-In Error: ' + error.message);
-    }
   }
 </script>

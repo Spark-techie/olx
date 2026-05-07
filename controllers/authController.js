@@ -169,6 +169,8 @@ const authController = {
       req.flash('error', 'Something went wrong.');
       res.redirect('/auth/forgot-password');
     }
+  },
+
   async googleLogin(req, res) {
     try {
       const { email, full_name, profile_image } = req.body;

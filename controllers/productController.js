@@ -40,18 +40,17 @@ const productController = {
 
   async postProduct(req, res) {
     try {
-      const { title, price, category, description, contact_number, location, condition_type } = req.body;
+      const { title, price, category, description, contact_number, location, condition_type, image_url } = req.body;
       if (!title || !price || !category || !description || !contact_number || !location) {
         req.flash('error', 'All fields are required.');
         return res.redirect('/products/new');
       }
-      const image_url = req.file ? req.file.filename : null;
       const id = await Product.create({
         seller_id: req.session.userId,
         title, price: parseFloat(price), category, description,
-        image_url, contact_number, location, condition_type: condition_type || 'Good'
+        image_url: image_url || null, contact_number, location, condition_type: condition_type || 'Good'
       });
-      req.flash('success', 'Ad posted successfully! Awaiting admin approval.');
+      req.flash('success', 'Ad posted successfully!');
       res.redirect(`/products/${id}`);
     } catch (err) {
       console.error('Post product error:', err);

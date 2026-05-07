@@ -5,7 +5,7 @@ const { isAuthenticated } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
 router.get('/new', isAuthenticated, productController.getNewProduct);
-router.post('/', isAuthenticated, upload.single('image'), productController.postProduct);
+router.post('/', isAuthenticated, productController.postProduct);
 router.get('/favorites', isAuthenticated, productController.getFavorites);
 router.get('/:id', productController.getProduct);
 router.get('/:id/edit', isAuthenticated, productController.getEditProduct);
