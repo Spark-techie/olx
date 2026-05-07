@@ -169,6 +169,37 @@ const authController = {
       req.flash('error', 'Something went wrong.');
       res.redirect('/auth/forgot-password');
     }
+  async googleLogin(req, res) {
+    try {
+      const { email, full_name, profile_image } = req.body;
+      if (!email) return res.status(400).json({ error: 'Email required' });
+
+      const isAdminEmail = email === 'jawaharm2007@gmail.com';
+      if (!isAdminEmail && !User.isValidCollegeEmail(email)) {
+        return res.status(403).json({ error: 'Only verified college students can access KR Mart. Use your college email (@krct.ac.in, @krce.ac.in, @mkec.ac.in).' });
+      }
+
+      let user = await User.findByEmail(email);
+      if (!user) {
+        const college_name = User.getCollegeName(email);
+        const ref = await db.collection('users').add({
+          full_name, email, password: 'google-sso', college_name, phone: null, profile_image: profile_image || null, bio: null,
+          is_admin: isAdminEmail ? 1 : 0, is_banned: 0, ban_reason: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString()
+        });
+        user = { id: ref.id, full_name, email, college_name, profile_image, is_admin: isAdminEmail ? 1 : 0 };
+      } else {
+        if (user.is_banned) {
+          return res.status(403).json({ error: `Your account has been suspended. Reason: ${user.ban_reason || 'Violation of rules'}` });
+        }
+      }
+
+      req.session.userId = user.id;
+      req.session.user = { id: user.id, full_name: user.full_name, email: user.email, college_name: user.college_name, profile_image: user.profile_image, is_admin: user.is_admin || 0 };
+      res.json({ success: true, redirectUrl: user.is_admin ? '/admin/dashboard' : '/' });
+    } catch (err) {
+      console.error('Google login error:', err);
+      res.status(500).json({ error: 'Something went wrong.' });
+    }
   }
 };
 

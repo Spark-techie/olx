@@ -42,8 +42,14 @@
       <a href="/auth/forgot-password" style="color: var(--primary); font-size: 0.875rem;">Forgot Password?</a>
     </div>
 
+    <div class="auth-divider">or</div>
+    <button type="button" class="btn btn-outline btn-block mb-2" onclick="handleGoogleLogin()" style="display:flex;align-items:center;justify-content:center;gap:10px;">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style="width:18px;">
+      Log in with Google
+    </button>
     <div class="auth-divider">new here?</div>
     <a href="/auth/signup" class="btn btn-outline btn-block">Create Account</a>
+    <%- include('../partials/firebase-client') %>
 
     <div class="college-badge mt-2">
       🔒 Only verified college students can login

@@ -55,8 +55,14 @@ function categoryIcon() {}
       <button type="submit" class="btn btn-primary btn-block btn-lg">Create Account →</button>
     </form>
 
+    <div class="auth-divider">or</div>
+    <button type="button" class="btn btn-outline btn-block mb-2" onclick="handleGoogleLogin()" style="display:flex;align-items:center;justify-content:center;gap:10px;">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style="width:18px;">
+      Sign up with Google
+    </button>
     <div class="auth-divider">already have an account?</div>
     <a href="/auth/login" class="btn btn-outline btn-block">Login</a>
+    <%- include('../partials/firebase-client') %>
   </div>
 </div>
 <script src="/js/main.js"></script>

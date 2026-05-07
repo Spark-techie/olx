@@ -8,6 +8,7 @@ router.post('/signup', authController.postSignup);
 
 router.get('/login', redirectIfLoggedIn, authController.getLogin);
 router.post('/login', authController.postLogin);
+router.post('/google-login', authController.googleLogin);
 
 router.get('/logout', authController.logout);
 
