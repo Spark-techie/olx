@@ -1,7 +1,7 @@
-// Campus OLX - Main JavaScript
+// KR Mart - Main JavaScript
 
 // ===== DARK MODE =====
-const THEME_KEY = 'campus-olx-theme';
+const THEME_KEY = 'kr-mart-theme';
 
 function initTheme() {
   const saved = localStorage.getItem(THEME_KEY) || 'light';

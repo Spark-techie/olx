@@ -1,163 +1,29 @@
-<%
-function timeAgo(date) {
-  const now = new Date();
-  const d = new Date(date);
-  const diff = Math.floor((now - d) / 1000);
-  if (diff < 60) return 'just now';
-  if (diff < 3600) return Math.floor(diff/60) + ' min ago';
-  if (diff < 86400) return Math.floor(diff/3600) + ' hours ago';
-  if (diff < 604800) return Math.floor(diff/86400) + ' days ago';
-  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+{
+  "name": "campus-olx",
+  "version": "1.0.0",
+  "description": "College-only marketplace platform - Firebase Edition",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "connect-flash": "^0.1.1",
+    "dotenv": "^16.3.1",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "express-validator": "^7.0.1",
+    "firebase-admin": "^12.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
 }
-function categoryIcon(cat) {
-  const icons = { Books: '📚', Electronics: '💻', Clothing: '👕', Furniture: '🛋️', Vehicles: '🚲', Sports: '⚽', Stationery: '✏️', Other: '📦' };
-  return icons[cat] || '📦';
-}
-%>
-<%- include('../partials/header') %>
-
-<div class="product-detail">
-  <!-- BREADCRUMB -->
-  <div class="breadcrumb">
-    <a href="/">Home</a>
-    <span class="breadcrumb-sep">›</span>
-    <a href="/?category=<%= product.category %>"><%= product.category %></a>
-    <span class="breadcrumb-sep">›</span>
-    <span><%= product.title %></span>
-  </div>
-
-  <div class="product-detail-grid">
-    <!-- LEFT: IMAGE -->
-    <div>
-      <div class="product-images">
-        <div class="product-main-img">
-          <% if (product.image_url) { %>
-            <img src="<%= product.image_url %>" alt="<%= product.title %>" />
-          <% } else { %>
-            <%= categoryIcon(product.category) %>
-          <% } %>
-        </div>
-      </div>
-
-      <!-- DESCRIPTION -->
-      <div class="product-description-box mt-2">
-        <h3 class="section-title mb-2">📝 Description</h3>
-        <p style="white-space: pre-wrap; line-height: 1.7; color: var(--text-muted)"><%= product.description %></p>
-      </div>
-
-      <!-- VIEWS COUNT -->
-      <p class="text-muted fs-sm mt-2">👁️ <%= product.views %> views · Posted <%= timeAgo(product.created_at) %></p>
-    </div>
-
-    <!-- RIGHT: INFO CARD -->
-    <div>
-      <div class="product-info-card">
-        <span class="product-badge"><%= product.category %></span>
-        <h1 class="product-title-detail"><%= product.title %></h1>
-        <div class="product-price-detail"><%= Number(product.price).toLocaleString('en-IN') %></div>
-
-        <ul class="product-meta-list">
-          <li><span class="meta-label">📍 Location</span><span><%= product.location %></span></li>
-          <li><span class="meta-label">📞 Contact</span><span><%= product.contact_number %></span></li>
-          <li><span class="meta-label">🏫 College</span><span><%= product.college_name %></span></li>
-          <li><span class="meta-label">📅 Posted</span><span><%= timeAgo(product.created_at) %></span></li>
-        </ul>
-
-        <!-- SELLER INFO -->
-        <div class="seller-card">
-          <div class="seller-avatar">
-            <% if (product.seller_avatar) { %>
-              <img src="<%= product.seller_avatar %>" alt="<%= product.seller_name %>" />
-            <% } else { %>
-              <%= product.seller_name.charAt(0).toUpperCase() %>
-            <% } %>
-          </div>
-          <div>
-            <div class="seller-name">🎓 <%= product.seller_name %></div>
-            <div class="seller-college"><%= product.college_name %></div>
-          </div>
-        </div>
-
-        <!-- ACTION BUTTONS -->
-        <% if (user) { %>
-          <% if (user.id === product.seller_id) { %>
-            <!-- Own listing controls -->
-            <a href="/products/<%= product.id %>/edit" class="btn btn-outline btn-block mb-1">✏️ Edit Ad</a>
-            <form method="POST" action="/products/<%= product.id %>/delete">
-              <button type="submit" class="btn btn-danger btn-block delete-btn">🗑️ Delete Ad</button>
-            </form>
-          <% } else { %>
-            <!-- Buyer actions -->
-            <button class="btn btn-accent btn-block mb-1 fav-btn <%= isFavorited ? 'active' : '' %>" data-id="<%= product.id %>" style="background: <%= isFavorited ? '#dc2626' : '' %>">
-              <%= isFavorited ? '❤️ Saved' : '🤍 Save to Favorites' %>
-            </button>
-            <div class="message-form">
-              <form method="POST" action="/products/<%= product.id %>/message">
-                <textarea name="message" placeholder="Hi! Is this still available?" rows="3" required></textarea>
-                <button type="submit" class="btn btn-primary btn-block">💬 Send Message</button>
-              </form>
-            </div>
-          <% } %>
-        <% } else { %>
-          <a href="/auth/login" class="btn btn-primary btn-block mb-1">Login to Contact Seller</a>
-          <a href="/auth/signup" class="btn btn-outline btn-block">Create Account</a>
-        <% } %>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- RELATED PRODUCTS -->
-<% if (related.length > 0) { %>
-<div class="related-section">
-  <div class="section-header">
-    <h2 class="section-title">Similar Items</h2>
-  </div>
-  <div class="products-grid">
-    <% related.forEach(p => { %>
-      <%- include('../partials/product-card', { product: p, user, isFavorited: false }) %>
-    <% }) %>
-  </div>
-</div>
-<% } %>
-
-
-<!-- REPORT PRODUCT -->
-<% if (typeof user !== 'undefined' && user && product.seller_id !== user.id) { %>
-<div style="text-align:center;margin:20px 0;">
-  <button onclick="document.getElementById('reportModal').style.display='flex'"
-    style="background:none;border:none;color:var(--text-muted);font-size:.8rem;cursor:pointer;text-decoration:underline;">
-    🚩 Report this listing
-  </button>
-</div>
-<!-- Report Modal -->
-<div id="reportModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:999;align-items:center;justify-content:center;">
-  <div style="background:var(--card-bg);border-radius:16px;padding:28px;width:400px;max-width:90vw;border:1px solid var(--border);">
-    <h3 style="margin-bottom:16px;font-size:1rem;">🚩 Report Listing</h3>
-    <form method="POST" action="/products/<%= product.id %>/report">
-      <div style="margin-bottom:14px;">
-        <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">Reason *</label>
-        <select name="reason" required style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text);font-family:inherit;">
-          <option value="">Select a reason</option>
-          <option value="Spam">Spam / Fake listing</option>
-          <option value="Prohibited">Prohibited item</option>
-          <option value="Wrong price">Misleading price</option>
-          <option value="Already sold">Already sold but still listed</option>
-          <option value="Other">Other</option>
-        </select>
-      </div>
-      <div style="margin-bottom:14px;">
-        <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:6px;color:var(--text-muted)">Details (optional)</label>
-        <textarea name="details" rows="3" placeholder="Describe the issue..." style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text);font-family:inherit;resize:vertical;"></textarea>
-      </div>
-      <div style="display:flex;gap:10px;justify-content:flex-end;">
-        <button type="button" onclick="document.getElementById('reportModal').style.display='none'"
-          style="padding:9px 18px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-family:inherit;">Cancel</button>
-        <button type="submit" style="padding:9px 18px;border-radius:8px;border:none;background:#ff6b6b;color:#fff;font-weight:700;cursor:pointer;font-family:inherit;">Submit Report</button>
-      </div>
-    </form>
-  </div>
-</div>
-<% } %>
-
-<%- include('../partials/footer') %>

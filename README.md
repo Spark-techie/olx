@@ -1,57 +1,140 @@
-<%- include('../partials/header') %>
-<main class="container" style="max-width:600px;margin:40px auto;padding:0 20px;">
-  <div class="card" style="padding:32px;">
-    <h1 style="font-size:1.4rem;font-weight:800;margin-bottom:24px;">✏️ Edit Profile</h1>
-    <form action="/profile/edit" method="POST" enctype="multipart/form-data">
-      <div style="display:flex;justify-content:center;margin-bottom:24px;">
-        <div style="position:relative;">
-          <div id="avatarDisplay" style="width:90px;height:90px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#6c63ff,#a78bfa);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;color:#fff;cursor:pointer;" onclick="document.getElementById('avatarInput').click()">
-            <% if (profileUser.profile_image) { %>
-              <img id="avatarImg" src="/uploads/<%= profileUser.profile_image %>" style="width:100%;height:100%;object-fit:cover;"/>
-            <% } else { %>
-              <span id="avatarInitial"><%= profileUser.full_name.charAt(0).toUpperCase() %></span>
-            <% } %>
-          </div>
-          <div style="position:absolute;bottom:0;right:0;background:var(--primary);border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:.7rem;cursor:pointer;color:#fff;" onclick="document.getElementById('avatarInput').click()">📷</div>
-        </div>
-      </div>
-      <input type="file" name="avatar" id="avatarInput" accept="image/*" style="display:none" onchange="previewAvatar(this)"/>
+# 🎓 Campus OLX — Firebase + GitHub Edition
 
-      <div class="form-group">
-        <label class="form-label">Full Name *</label>
-        <input type="text" name="full_name" class="form-input" value="<%= profileUser.full_name %>" required/>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Phone Number</label>
-        <input type="tel" name="phone" class="form-input" value="<%= profileUser.phone || '' %>" placeholder="10-digit mobile number"/>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Bio</label>
-        <textarea name="bio" class="form-input" rows="3" placeholder="A little about yourself..."><%= profileUser.bio || '' %></textarea>
-      </div>
-      <div class="form-group">
-        <label class="form-label">College</label>
-        <input type="text" class="form-input" value="<%= profileUser.college_name %>" disabled style="opacity:.6;cursor:not-allowed;"/>
-        <small style="color:var(--text-muted);font-size:.75rem;">College cannot be changed (linked to email domain)</small>
-      </div>
-      <div style="display:flex;gap:12px;margin-top:8px;">
-        <a href="/profile" class="btn btn-secondary" style="flex:1;text-align:center;padding:12px;">Cancel</a>
-        <button type="submit" class="btn btn-primary" style="flex:2;padding:12px;font-weight:700;">💾 Save Changes</button>
-      </div>
-    </form>
-  </div>
-</main>
-<script>
-function previewAvatar(input) {
-  const file = input.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const d = document.getElementById('avatarDisplay');
-      d.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;"/>`;
-    };
-    reader.readAsDataURL(file);
+A college-only buy & sell marketplace built with **Node.js + Express + Firebase Firestore**.
+
+---
+
+## 🔥 Firebase Setup
+
+### Step 1 — Create a Firebase Project
+1. Go to [https://console.firebase.google.com](https://console.firebase.google.com)
+2. Click **"Add project"** → name it `campus-olx`
+3. Disable Google Analytics (optional) → **Create project**
+
+### Step 2 — Enable Firestore
+1. In the Firebase Console sidebar → **Firestore Database**
+2. Click **"Create database"**
+3. Choose **"Start in production mode"** → select a region → **Done**
+
+### Step 3 — Get Service Account Key
+1. Go to **Project Settings** (gear icon) → **Service accounts** tab
+2. Click **"Generate new private key"** → **Generate key**
+3. A JSON file downloads — **keep it secret!**
+4. Copy the values into your `.env`:
+
+```
+FIREBASE_PROJECT_ID=       # "project_id" in JSON
+FIREBASE_PRIVATE_KEY_ID=   # "private_key_id" in JSON
+FIREBASE_PRIVATE_KEY=      # "private_key" in JSON (keep the \n characters)
+FIREBASE_CLIENT_EMAIL=     # "client_email" in JSON
+FIREBASE_CLIENT_ID=        # "client_id" in JSON
+```
+
+### Step 4 — Set Firestore Security Rules
+In Firestore → **Rules** tab, paste:
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false; // Server-side only via Admin SDK
+    }
   }
 }
-</script>
-<%- include('../partials/footer') %>
+```
+
+---
+
+## 🚀 GitHub Hosting Setup
+
+### Step 1 — Push to GitHub
+```bash
+git init
+git add .
+git commit -m "Initial commit - Firebase edition"
+git remote add origin https://github.com/YOUR_USERNAME/campus-olx.git
+git push -u origin main
+```
+
+### Step 2 — Deploy on Render (Free)
+1. Go to [https://render.com](https://render.com) → Sign up with GitHub
+2. Click **"New"** → **"Web Service"**
+3. Connect your `campus-olx` GitHub repo
+4. Settings:
+   - **Runtime**: Node
+   - **Build Command**: `npm install`
+   - **Start Command**: `npm start`
+5. Under **Environment Variables**, add all your `.env` values:
+   - `FIREBASE_PROJECT_ID`, `FIREBASE_PRIVATE_KEY`, etc.
+   - `SESSION_SECRET`, `APP_URL` (set to your Render URL)
+6. Click **Deploy**!
+
+### Step 3 — Auto-Deploy with GitHub Actions
+1. In Render: **Settings** → **Deploy Hook** → copy the URL
+2. In GitHub: **Settings** → **Secrets and variables** → **Actions**
+3. Add secret: `RENDER_DEPLOY_HOOK_URL` = the URL you copied
+4. Now every `git push` to `main` auto-deploys! ✅
+
+---
+
+## 💻 Local Development
+
+```bash
+# Install dependencies
+npm install
+
+# Copy env template and fill in Firebase credentials
+cp .env.example .env
+
+# Run the server
+npm run dev
+```
+
+Visit: `http://localhost:3000`
+Admin: `http://localhost:3000/admin/dashboard`
+
+---
+
+## 📁 Project Structure
+
+```
+campus-olx/
+├── .github/workflows/deploy.yml  # Auto-deploy to Render
+├── config/
+│   ├── db.js          # Firebase Admin SDK connection
+│   └── multer.js      # File upload config
+├── controllers/       # Route handlers
+├── middleware/        # Auth, upload middleware
+├── models/            # Firestore data models
+│   ├── User.js
+│   ├── Product.js
+│   ├── Message.js
+│   └── Admin.js
+├── routes/            # Express routes
+├── views/             # EJS templates
+├── public/            # CSS, JS, images
+├── .env               # Firebase credentials (never commit!)
+├── .gitignore
+└── server.js
+```
+
+---
+
+## 🗄️ Firestore Collections
+
+| Collection   | Description                  |
+|-------------|------------------------------|
+| `users`     | Student accounts             |
+| `products`  | Product listings             |
+| `favorites` | User favorites               |
+| `messages`  | In-app messaging             |
+| `reports`   | Product reports              |
+| `categories`| Admin-managed categories     |
+
+---
+
+## ⚠️ Important Notes
+
+- **Never commit `.env`** — it's in `.gitignore`
+- Uploaded images are stored locally in `/uploads/` — for production, consider **Firebase Storage** or **Cloudinary**
+- The app uses **Firebase Admin SDK** (server-side), not the client SDK

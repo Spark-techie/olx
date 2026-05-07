@@ -1,23 +1,62 @@
-<%- include('../partials/header') %>
-<main class="container" style="max-width:1100px;margin:40px auto;padding:0 20px;">
-  <div style="margin-bottom:28px;">
-    <h1 style="font-size:1.6rem;font-weight:800;">❤️ Saved Items</h1>
-    <p style="color:var(--text-muted);margin-top:4px;"><%= products.length %> saved item<%= products.length !== 1 ? 's' : '' %></p>
-  </div>
+require('dotenv').config();
+const express = require('express');
+const session = require('express-session');
+const flash = require('connect-flash');
+const path = require('path');
 
-  <% if (products.length > 0) { %>
-    <div class="products-grid">
-      <% products.forEach(product => { %>
-        <%- include('../partials/product-card', { product }) %>
-      <% }) %>
-    </div>
-  <% } else { %>
-    <div class="empty-state">
-      <div style="font-size:4rem;margin-bottom:16px;">💔</div>
-      <h2>No saved items yet</h2>
-      <p>Browse products and tap the ❤️ to save items you like.</p>
-      <a href="/" class="btn btn-primary" style="margin-top:20px;">Browse Products</a>
-    </div>
-  <% } %>
-</main>
-<%- include('../partials/footer') %>
+const { setCurrentUser } = require('./middleware/auth');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// View engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+// Static files
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Body parsing
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+// Session
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'campus_olx_secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 } // 7 days
+}));
+
+// Flash messages
+app.use(flash());
+
+// Set current user on all views
+app.use(setCurrentUser);
+
+// Routes
+app.use('/auth', require('./routes/auth'));
+app.use('/products', require('./routes/products'));
+app.use('/profile', require('./routes/profile'));
+app.use('/messages', require('./routes/messages'));
+app.use('/admin', require('./routes/admin'));
+app.get('/', require('./controllers/productController').getHome);
+
+// 404 Handler
+app.use((req, res) => {
+  res.status(404).render('404', { title: '404 - Page Not Found' });
+});
+
+// Error Handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).render('500', { title: 'Server Error', message: err.message });
+});
+
+app.listen(PORT, () => {
+  console.log(`\n🎓 KR Mart is running!`);
+  console.log(`   Local:  http://localhost:${PORT}`);
+  console.log(`   Admin:  http://localhost:${PORT}/admin/dashboard`);
+  console.log(`   Press Ctrl+C to stop.\n`);
+});

@@ -11,7 +11,18 @@ function timeAgo(date) {
 }
 
 function categoryIcon(cat) {
-  const icons = { Books: '📚', Electronics: '💻', Clothing: '👕', Furniture: '🛋️', Vehicles: '🚲', Sports: '⚽', Stationery: '✏️', Other: '📦' };
+  const icons = {
+    'Books': '📚',
+    'Electronics': '💻',
+    'Mobiles': '📱',
+    'Cycles': '🚲',
+    'Hostel Items': '🛏',
+    'Lab Equipment': '🧪',
+    'Hobbies': '🎸',
+    'Project Components': '🛠',
+    'Fashion': '👕',
+    'Gaming': '🎮'
+  };
   return icons[cat] || '📦';
 }
 %>
