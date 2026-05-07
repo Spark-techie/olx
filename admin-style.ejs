@@ -1,0 +1,147 @@
+// Campus OLX - Main JavaScript
+
+// ===== DARK MODE =====
+const THEME_KEY = 'campus-olx-theme';
+
+function initTheme() {
+  const saved = localStorage.getItem(THEME_KEY) || 'light';
+  document.documentElement.setAttribute('data-theme', saved);
+  updateThemeIcon(saved);
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem(THEME_KEY, next);
+  updateThemeIcon(next);
+}
+
+function updateThemeIcon(theme) {
+  const btn = document.getElementById('themeToggle');
+  if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+}
+
+// ===== HAMBURGER MENU =====
+function initHamburger() {
+  const btn = document.getElementById('hamburger');
+  const nav = document.getElementById('navLinks');
+  if (!btn || !nav) return;
+
+  btn.addEventListener('click', () => {
+    nav.classList.toggle('open');
+    btn.textContent = nav.classList.contains('open') ? '✕' : '☰';
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!btn.contains(e.target) && !nav.contains(e.target)) {
+      nav.classList.remove('open');
+      btn.textContent = '☰';
+    }
+  });
+}
+
+// ===== FLASH MESSAGE AUTO-DISMISS =====
+function initFlash() {
+  const flashes = document.querySelectorAll('.flash');
+  flashes.forEach(flash => {
+    setTimeout(() => {
+      flash.style.transition = 'opacity 0.4s';
+      flash.style.opacity = '0';
+      setTimeout(() => flash.remove(), 400);
+    }, 4000);
+  });
+}
+
+// ===== FAVORITE BUTTON =====
+function initFavorites() {
+  document.querySelectorAll('.fav-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const productId = btn.dataset.id;
+      try {
+        const res = await fetch(`/products/${productId}/favorite`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (data.success) {
+          btn.classList.toggle('active', data.favorited);
+          btn.textContent = data.favorited ? '❤️' : '🤍';
+          btn.title = data.favorited ? 'Remove from favorites' : 'Add to favorites';
+        }
+      } catch (err) {
+        console.error('Favorite toggle failed:', err);
+      }
+    });
+  });
+}
+
+// ===== DELETE CONFIRM MODAL =====
+function initDeleteConfirm() {
+  const overlay = document.getElementById('deleteModal');
+  if (!overlay) return;
+
+  let deleteForm = null;
+
+  document.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      deleteForm = btn.closest('form');
+      overlay.classList.add('active');
+    });
+  });
+
+  document.getElementById('confirmDelete')?.addEventListener('click', () => {
+    if (deleteForm) deleteForm.submit();
+  });
+
+  document.getElementById('cancelDelete')?.addEventListener('click', () => {
+    overlay.classList.remove('active');
+    deleteForm = null;
+  });
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      overlay.classList.remove('active');
+      deleteForm = null;
+    }
+  });
+}
+
+// ===== IMAGE PREVIEW =====
+function initImagePreview() {
+  const input = document.getElementById('imageInput');
+  const preview = document.getElementById('imagePreview');
+  if (!input || !preview) return;
+
+  input.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      preview.src = ev.target.result;
+      preview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ===== PRICE FORMATTING =====
+function formatPrice(num) {
+  return new Intl.NumberFormat('en-IN').format(num);
+}
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+  initHamburger();
+  initFlash();
+  initFavorites();
+  initDeleteConfirm();
+  initImagePreview();
+
+  // Theme toggle button
+  document.getElementById('themeToggle')?.addEventListener('click', toggleTheme);
+});

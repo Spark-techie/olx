@@ -1,0 +1,110 @@
+<%
+function timeAgo(date) {
+  const now = new Date();
+  const d = new Date(date);
+  const diff = Math.floor((now - d) / 1000);
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+  if (diff < 604800) return Math.floor(diff/86400) + 'd ago';
+  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+}
+
+function categoryIcon(cat) {
+  const icons = { Books: '📚', Electronics: '💻', Clothing: '👕', Furniture: '🛋️', Vehicles: '🚲', Sports: '⚽', Stationery: '✏️', Other: '📦' };
+  return icons[cat] || '📦';
+}
+%>
+<%- include('partials/header') %>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>🎓 Your College <span>Marketplace</span></h1>
+  <p>Buy & Sell within your college community. Safe, Simple, Trusted.</p>
+  <form class="hero-search" action="/" method="GET">
+    <input type="text" name="search" placeholder="Search for books, electronics, furniture..." value="<%= filters.search || '' %>" />
+    <button type="submit">Search</button>
+  </form>
+</div>
+
+<!-- CATEGORIES -->
+<div class="categories-section">
+  <p class="categories-title">Browse by Category</p>
+  <div class="categories-scroll">
+    <a href="/" class="category-chip <%= !filters.category ? 'active' : '' %>">🏠 All</a>
+    <% categories.forEach(cat => { %>
+      <a href="/?category=<%= cat %>" class="category-chip <%= filters.category === cat ? 'active' : '' %>">
+        <%= categoryIcon(cat) %> <%= cat %>
+      </a>
+    <% }) %>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+
+  <!-- FILTERS -->
+  <form class="filter-bar" method="GET" action="/">
+    <% if (filters.search) { %>
+      <input type="hidden" name="search" value="<%= filters.search %>" />
+    <% } %>
+    <% if (filters.category) { %>
+      <input type="hidden" name="category" value="<%= filters.category %>" />
+    <% } %>
+
+    <div class="filter-group">
+      <label>Min Price (₹)</label>
+      <input type="number" name="minPrice" value="<%= filters.minPrice || '' %>" placeholder="0" min="0" />
+    </div>
+    <div class="filter-group">
+      <label>Max Price (₹)</label>
+      <input type="number" name="maxPrice" value="<%= filters.maxPrice || '' %>" placeholder="Any" min="0" />
+    </div>
+    <div class="filter-group">
+      <label>Sort By</label>
+      <select name="sort">
+        <option value="newest" <%= filters.sort === 'newest' || !filters.sort ? 'selected' : '' %>>Newest First</option>
+        <option value="oldest" <%= filters.sort === 'oldest' ? 'selected' : '' %>>Oldest First</option>
+        <option value="price_asc" <%= filters.sort === 'price_asc' ? 'selected' : '' %>>Price: Low to High</option>
+        <option value="price_desc" <%= filters.sort === 'price_desc' ? 'selected' : '' %>>Price: High to Low</option>
+      </select>
+    </div>
+    <button type="submit" class="btn-filter">Apply</button>
+    <a href="/" class="btn-clear">✕ Clear</a>
+  </form>
+
+  <!-- SECTION HEADER -->
+  <div class="section-header">
+    <h2 class="section-title">
+      <% if (filters.search) { %>
+        Results for "<%= filters.search %>"
+      <% } else if (filters.category) { %>
+        <%= categoryIcon(filters.category) %> <%= filters.category %>
+      <% } else { %>
+        Fresh Listings
+      <% } %>
+    </h2>
+    <span class="section-count"><%= products.length %> item<%= products.length !== 1 ? 's' : '' %> found</span>
+  </div>
+
+  <!-- PRODUCTS GRID -->
+  <% if (products.length > 0) { %>
+    <div class="products-grid">
+      <% products.forEach(product => { %>
+        <%- include('partials/product-card', { product, user, isFavorited: false }) %>
+      <% }) %>
+    </div>
+  <% } else { %>
+    <div class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <h3>No products found</h3>
+      <p class="text-muted">Try different search terms or filters.</p>
+      <% if (user) { %>
+        <a href="/products/new" class="btn btn-accent mt-2">Post the First Ad</a>
+      <% } %>
+    </div>
+  <% } %>
+
+</div>
+
+<%- include('partials/footer') %>

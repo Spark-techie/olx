@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title><%= title %></title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <%- include('../partials/admin-style') %>
+</head>
+<body>
+<%- include('../partials/admin-sidebar', {page}) %>
+<div class="main">
+  <%- include('../partials/admin-topbar') %>
+  <div class="content">
+    <%- include('../partials/admin-flash') %>
+
+    <div class="page-row">
+      <div class="section-title">🚨 Reports</div>
+      <form class="search-form" method="GET" action="/admin/reports">
+        <select class="input" name="status" style="width:160px;">
+          <option value="">All Reports</option>
+          <option value="pending" <%= status==='pending'?'selected':'' %>>Pending</option>
+          <option value="resolved" <%= status==='resolved'?'selected':'' %>>Resolved</option>
+          <option value="dismissed" <%= status==='dismissed'?'selected':'' %>>Dismissed</option>
+        </select>
+        <button class="btn btn-primary" type="submit"><i class="fas fa-filter"></i> Filter</button>
+      </form>
+    </div>
+
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr><th>Reporter</th><th>Product</th><th>Reason</th><th>Details</th><th>Status</th><th>Date</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          <% reports.forEach(r => { %>
+          <tr>
+            <td style="font-size:.85rem;font-weight:500"><%= r.reporter_name || 'Unknown' %></td>
+            <td>
+              <% if (r.product_title) { %>
+                <span class="truncate" style="max-width:130px;display:block;font-size:.83rem"><%= r.product_title %></span>
+              <% } else { %>
+                <span style="color:var(--text3)">Deleted</span>
+              <% } %>
+            </td>
+            <td><span class="badge badge-yellow"><%= r.reason %></span></td>
+            <td>
+              <div class="truncate" style="max-width:160px;font-size:.8rem;color:var(--text2)"><%= r.details || '—' %></div>
+            </td>
+            <td>
+              <% if (r.status==='pending') { %><span class="badge badge-red">Pending</span>
+              <% } else if (r.status==='resolved') { %><span class="badge badge-green">Resolved</span>
+              <% } else { %><span class="badge badge-gray">Dismissed</span><% } %>
+            </td>
+            <td class="mono" style="font-size:.75rem;color:var(--text3)"><%= new Date(r.created_at).toLocaleDateString() %></td>
+            <td>
+              <% if (r.status==='pending') { %>
+                <div style="display:flex;gap:5px;">
+                  <form method="POST" action="/admin/reports/<%= r.id %>/resolve" style="display:inline">
+                    <button class="btn btn-success btn-sm"><i class="fas fa-check"></i> Resolve</button>
+                  </form>
+                  <form method="POST" action="/admin/reports/<%= r.id %>/dismiss" style="display:inline">
+                    <button class="btn btn-ghost btn-sm"><i class="fas fa-times"></i> Dismiss</button>
+                  </form>
+                </div>
+              <% } else { %>
+                <span style="color:var(--text3);font-size:.78rem">Done</span>
+              <% } %>
+            </td>
+          </tr>
+          <% }) %>
+          <% if (!reports.length) { %>
+          <tr><td colspan="7"><div class="empty"><i class="fas fa-flag"></i><p>No reports found</p></div></td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if (currentPage > 1 || reports.length === 20) { %>
+    <div class="pagination">
+      <% if (currentPage > 1) { %><a href="?page=<%= currentPage-1 %>&status=<%= status %>" class="page-btn"><i class="fas fa-chevron-left"></i></a><% } %>
+      <span class="page-btn active"><%= currentPage %></span>
+      <% if (reports.length === 20) { %><a href="?page=<%= currentPage+1 %>&status=<%= status %>" class="page-btn"><i class="fas fa-chevron-right"></i></a><% } %>
+    </div>
+    <% } %>
+  </div>
+</div>
+</body>
+</html>

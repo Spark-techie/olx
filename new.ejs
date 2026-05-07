@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login | Campus OLX</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <a href="/">Campus <span>OLX</span></a>
+    </div>
+    <h1 class="auth-title">Welcome Back</h1>
+    <p class="auth-subtitle">Login to your Campus OLX account</p>
+
+    <% if (success && success.length > 0) { %>
+      <% success.forEach(msg => { %>
+        <div class="flash flash-success mb-2">✅ <%= msg %></div>
+      <% }) %>
+    <% } %>
+    <% if (error && error.length > 0) { %>
+      <% error.forEach(msg => { %>
+        <div class="flash flash-error mb-2">⚠️ <%= msg %></div>
+      <% }) %>
+    <% } %>
+
+    <form method="POST" action="/auth/login">
+      <div class="form-group">
+        <label class="form-label">College Email</label>
+        <input type="email" name="email" class="form-control" placeholder="you@krct.ac.in" required autofocus />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" class="form-control" placeholder="Your password" required />
+      </div>
+      <button type="submit" class="btn btn-primary btn-block btn-lg">Login →</button>
+    </form>
+
+    <div class="text-center mt-2">
+      <a href="/auth/forgot-password" style="color: var(--primary); font-size: 0.875rem;">Forgot Password?</a>
+    </div>
+
+    <div class="auth-divider">new here?</div>
+    <a href="/auth/signup" class="btn btn-outline btn-block">Create Account</a>
+
+    <div class="college-badge mt-2">
+      🔒 Only verified college students can login
+    </div>
+  </div>
+</div>
+<script src="/js/main.js"></script>
+</body>
+</html>

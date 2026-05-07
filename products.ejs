@@ -1,0 +1,52 @@
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a href="/">Campus <span>OLX</span></a>
+      <p class="footer-tagline">The trusted marketplace for college students. Buy and sell within your campus community.</p>
+      <div class="college-tags mt-2">
+        <span class="college-tag">KRCT</span>
+        <span class="college-tag">KRCE</span>
+        <span class="college-tag">MKCE</span>
+      </div>
+    </div>
+    <div>
+      <p class="footer-heading">Quick Links</p>
+      <ul class="footer-links">
+        <li><a href="/">Browse Products</a></li>
+        <li><a href="/products/new">Post an Ad</a></li>
+        <li><a href="/products/favorites">My Favorites</a></li>
+        <li><a href="/messages">Messages</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="footer-heading">Categories</p>
+      <ul class="footer-links">
+        <li><a href="/?category=Books">📚 Books</a></li>
+        <li><a href="/?category=Electronics">💻 Electronics</a></li>
+        <li><a href="/?category=Clothing">👕 Clothing</a></li>
+        <li><a href="/?category=Vehicles">🚲 Vehicles</a></li>
+        <li><a href="/?category=Sports">⚽ Sports</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© <%= new Date().getFullYear() %> Campus OLX — For students, by students.</span>
+    <span>Made with ❤️ for college communities</span>
+  </div>
+</footer>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <p class="modal-title">🗑️ Delete Ad?</p>
+    <p class="text-muted fs-sm mb-2">This action cannot be undone. Your ad will be permanently removed.</p>
+    <div class="d-flex gap-1">
+      <button class="btn btn-danger" id="confirmDelete">Yes, Delete</button>
+      <button class="btn btn-outline" id="cancelDelete">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

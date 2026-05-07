@@ -1,0 +1,196 @@
+<%
+// Inline layout for EJS (no extends support – we render body inside layout manually)
+%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title><%= title %></title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <%- include('../partials/admin-style') %>
+</head>
+<body>
+<%- include('../partials/admin-sidebar', {page}) %>
+<div class="main">
+  <%- include('../partials/admin-topbar') %>
+  <div class="content">
+    <%- include('../partials/admin-flash') %>
+
+    <div class="section-title">
+      📊 Dashboard <span>ANALYTICS</span>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="stat-grid">
+      <div class="stat-card stat-purple">
+        <div class="stat-icon"><i class="fas fa-users"></i></div>
+        <div class="stat-num"><%= stats.totalUsers %></div>
+        <div class="stat-label">Total Students</div>
+      </div>
+      <div class="stat-card stat-red">
+        <div class="stat-icon"><i class="fas fa-ban"></i></div>
+        <div class="stat-num"><%= stats.bannedUsers %></div>
+        <div class="stat-label">Banned Users</div>
+      </div>
+      <div class="stat-card stat-green">
+        <div class="stat-icon"><i class="fas fa-box-open"></i></div>
+        <div class="stat-num"><%= stats.totalProducts %></div>
+        <div class="stat-label">Active Listings</div>
+      </div>
+      <div class="stat-card stat-yellow">
+        <div class="stat-icon"><i class="fas fa-clock"></i></div>
+        <div class="stat-num"><%= stats.pendingApproval %></div>
+        <div class="stat-label">Pending Approval</div>
+      </div>
+      <div class="stat-card stat-purple">
+        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+        <div class="stat-num"><%= stats.soldProducts %></div>
+        <div class="stat-label">Items Sold</div>
+      </div>
+      <div class="stat-card stat-red">
+        <div class="stat-icon"><i class="fas fa-flag"></i></div>
+        <div class="stat-num"><%= stats.pendingReports %></div>
+        <div class="stat-label">Pending Reports</div>
+      </div>
+      <div class="stat-card stat-green">
+        <div class="stat-icon"><i class="fas fa-comments"></i></div>
+        <div class="stat-num"><%= stats.totalMessages %></div>
+        <div class="stat-label">Messages Sent</div>
+      </div>
+      <div class="stat-card stat-yellow">
+        <div class="stat-icon"><i class="fas fa-heart"></i></div>
+        <div class="stat-num"><%= stats.totalFavorites %></div>
+        <div class="stat-label">Total Favorites</div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h4>📈 New Signups – Last 7 Days</h4>
+        <canvas id="signupChart"></canvas>
+      </div>
+      <div class="chart-card">
+        <h4>📦 New Listings – Last 7 Days</h4>
+        <canvas id="productChart"></canvas>
+      </div>
+      <div class="chart-card">
+        <h4>🏷️ Listings by Category</h4>
+        <canvas id="catChart"></canvas>
+      </div>
+      <div class="chart-card">
+        <h4>🎓 Users by College</h4>
+        <canvas id="collegeChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="table-card">
+        <div class="table-header"><h3>🆕 Recent Users</h3>
+          <a href="/admin/users" class="btn btn-ghost btn-sm">View All</a>
+        </div>
+        <table>
+          <thead><tr><th>Name</th><th>College</th><th>Joined</th></tr></thead>
+          <tbody>
+            <% recentUsers.forEach(u => { %>
+            <tr>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div class="avatar-sm"><%= u.full_name.charAt(0).toUpperCase() %></div>
+                  <span class="truncate" style="max-width:110px"><%= u.full_name %></span>
+                </div>
+              </td>
+              <td><span class="badge badge-purple" style="font-size:.65rem"><%= u.college_name.split(' ')[0] %></span></td>
+              <td class="mono" style="font-size:.75rem;color:var(--text3)"><%= new Date(u.created_at).toLocaleDateString() %></td>
+            </tr>
+            <% }) %>
+            <% if (!recentUsers.length) { %><tr><td colspan="3" class="empty"><i class="fas fa-users"></i><p>No users yet</p></td></tr><% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-card">
+        <div class="table-header"><h3>🛍️ Recent Listings</h3>
+          <a href="/admin/products" class="btn btn-ghost btn-sm">View All</a>
+        </div>
+        <table>
+          <thead><tr><th>Product</th><th>Price</th><th>Date</th></tr></thead>
+          <tbody>
+            <% recentProducts.forEach(p => { %>
+            <tr>
+              <td>
+                <div class="truncate" style="max-width:140px;font-weight:600"><%= p.title %></div>
+                <div style="font-size:.72rem;color:var(--text3)"><%= p.seller %></div>
+              </td>
+              <td class="mono" style="color:var(--accent3)">₹<%= parseFloat(p.price).toLocaleString() %></td>
+              <td class="mono" style="font-size:.75rem;color:var(--text3)"><%= new Date(p.created_at).toLocaleDateString() %></td>
+            </tr>
+            <% }) %>
+            <% if (!recentProducts.length) { %><tr><td colspan="3" class="empty"><i class="fas fa-box"></i><p>No products yet</p></td></tr><% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const chartDefaults = {
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { grid: { color: 'rgba(255,255,255,.05)' }, ticks: { color: '#9090a8', font: { size: 11 } } },
+    y: { grid: { color: 'rgba(255,255,255,.05)' }, ticks: { color: '#9090a8', font: { size: 11 } }, beginAtZero: true }
+  }
+};
+
+// Signup trend
+const signupData = <%- JSON.stringify(signupTrend) %>;
+new Chart(document.getElementById('signupChart'), {
+  type: 'line',
+  data: {
+    labels: signupData.map(d => new Date(d.day).toLocaleDateString('en',{month:'short',day:'numeric'})),
+    datasets: [{ data: signupData.map(d=>d.count), borderColor:'#6c63ff', backgroundColor:'rgba(108,99,255,.1)', fill:true, tension:.4, pointBackgroundColor:'#6c63ff', pointRadius:4 }]
+  },
+  options: { ...chartDefaults, responsive:true, maintainAspectRatio:false }
+});
+
+// Product trend
+const productData = <%- JSON.stringify(productTrend) %>;
+new Chart(document.getElementById('productChart'), {
+  type: 'bar',
+  data: {
+    labels: productData.map(d => new Date(d.day).toLocaleDateString('en',{month:'short',day:'numeric'})),
+    datasets: [{ data: productData.map(d=>d.count), backgroundColor:'rgba(67,233,123,.4)', borderColor:'#43e97b', borderWidth:2, borderRadius:6 }]
+  },
+  options: { ...chartDefaults, responsive:true, maintainAspectRatio:false }
+});
+
+// Category breakdown – doughnut
+const catData = <%- JSON.stringify(catBreakdown) %>;
+const catColors = ['#6c63ff','#ff6b6b','#43e97b','#f7971e','#a78bfa','#38bdf8','#fb7185','#34d399','#fbbf24','#818cf8'];
+new Chart(document.getElementById('catChart'), {
+  type: 'doughnut',
+  data: {
+    labels: catData.map(c=>c.category),
+    datasets: [{ data: catData.map(c=>c.count), backgroundColor: catColors, borderWidth:0 }]
+  },
+  options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{ color:'#9090a8', font:{size:11}, padding:12 } } } }
+});
+
+// College breakdown
+const colData = <%- JSON.stringify(collegeBreakdown) %>;
+new Chart(document.getElementById('collegeChart'), {
+  type: 'bar',
+  data: {
+    labels: colData.map(c=>c.college_name.split(' ')[0]),
+    datasets: [{ data: colData.map(c=>c.count), backgroundColor:'rgba(247,151,30,.4)', borderColor:'#f7971e', borderWidth:2, borderRadius:6 }]
+  },
+  options: { ...chartDefaults, indexAxis:'y', responsive:true, maintainAspectRatio:false }
+});
+</script>
+</body>
+</html>

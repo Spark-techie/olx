@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title><%= title %></title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <%- include('../partials/admin-style') %>
+  <style>
+    .cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin-bottom: 28px; }
+    .cat-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; transition: all .2s; }
+    .cat-card:hover { border-color: var(--accent); }
+    .cat-icon { font-size: 2rem; margin-bottom: 10px; }
+    .cat-name { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+    .cat-meta { font-size: .75rem; color: var(--text3); margin-bottom: 14px; }
+    .cat-actions { display: flex; gap: 8px; }
+  </style>
+</head>
+<body>
+<%- include('../partials/admin-sidebar', {page}) %>
+<div class="main">
+  <%- include('../partials/admin-topbar') %>
+  <div class="content">
+    <%- include('../partials/admin-flash') %>
+
+    <div class="page-row">
+      <div class="section-title">🏷️ Categories <span><%= cats.length %> TOTAL</span></div>
+      <button class="btn btn-primary" onclick="openModal('addCatModal')"><i class="fas fa-plus"></i> Add Category</button>
+    </div>
+
+    <div class="cat-grid">
+      <% cats.forEach(c => { %>
+      <div class="cat-card">
+        <div class="cat-icon"><%= c.icon %></div>
+        <div class="cat-name"><%= c.name %></div>
+        <div class="cat-meta">
+          Order: <%= c.sort_order %> &nbsp;|&nbsp;
+          <% if (c.is_active) { %><span class="badge badge-green" style="font-size:.62rem">Active</span><% } else { %><span class="badge badge-red" style="font-size:.62rem">Inactive</span><% } %>
+        </div>
+        <div class="cat-actions">
+          <button class="btn btn-ghost btn-sm" onclick="openEditModal(<%= c.id %>, '<%= c.name %>', '<%= c.icon %>', <%= c.is_active %>, <%= c.sort_order %>)">
+            <i class="fas fa-edit"></i> Edit
+          </button>
+          <button class="btn btn-danger btn-sm" onclick="confirmDeleteCat(<%= c.id %>, '<%= c.name %>')">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+</div>
+
+<!-- Add Modal -->
+<div class="modal-overlay" id="addCatModal">
+  <div class="modal">
+    <h3>➕ Add New Category</h3>
+    <form method="POST" action="/admin/categories/create">
+      <div class="form-group">
+        <label>Category Name *</label>
+        <input class="input" name="name" placeholder="e.g. Lab Equipment" required/>
+      </div>
+      <div class="form-group">
+        <label>Icon (emoji)</label>
+        <input class="input" name="icon" placeholder="e.g. 🔬" maxlength="4" value="📦"/>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('addCatModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Create</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editCatModal">
+  <div class="modal">
+    <h3>✏️ Edit Category</h3>
+    <form id="editCatForm" method="POST">
+      <div class="form-group">
+        <label>Category Name *</label>
+        <input class="input" id="editName" name="name" required/>
+      </div>
+      <div class="form-group">
+        <label>Icon (emoji)</label>
+        <input class="input" id="editIcon" name="icon" maxlength="4"/>
+      </div>
+      <div class="form-group">
+        <label>Sort Order</label>
+        <input class="input" id="editOrder" name="sort_order" type="number" min="0"/>
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+        <input type="checkbox" id="editActive" name="is_active" style="width:auto;" value="1"/>
+        <label for="editActive" style="margin:0;cursor:pointer">Active (visible on site)</label>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('editCatModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<form id="deleteCatForm" method="POST" style="display:none"></form>
+
+<script>
+function openEditModal(id, name, icon, isActive, sortOrder) {
+  document.getElementById('editName').value = name;
+  document.getElementById('editIcon').value = icon;
+  document.getElementById('editOrder').value = sortOrder;
+  document.getElementById('editActive').checked = !!isActive;
+  document.getElementById('editCatForm').action = `/admin/categories/${id}/update`;
+  openModal('editCatModal');
+}
+function confirmDeleteCat(id, name) {
+  if (confirm(`Delete category "${name}"? This won't delete products in this category.`)) {
+    const f = document.getElementById('deleteCatForm');
+    f.action = `/admin/categories/${id}/delete`;
+    f.submit();
+  }
+}
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if(e.target===el) el.classList.remove('open'); });
+});
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+</script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+<a href="/products/<%= product.id %>" class="product-card">
+  <div class="product-card-img">
+    <% if (product.image_url) { %>
+      <img src="/uploads/<%= product.image_url %>" alt="<%= product.title %>" loading="lazy" />
+    <% } else { %>
+      <%= categoryIcon(product.category) %>
+    <% } %>
+    <span class="product-card-badge"><%= product.category %></span>
+    <% if (user && product.seller_id !== user.id) { %>
+      <button class="fav-btn fav-btn-card <%= typeof isFavorited !== 'undefined' && isFavorited ? 'active' : '' %>" 
+              data-id="<%= product.id %>" 
+              title="Add to favorites"
+              onclick="event.preventDefault(); event.stopPropagation();">
+        <%= typeof isFavorited !== 'undefined' && isFavorited ? '❤️' : '🤍' %>
+      </button>
+    <% } %>
+  </div>
+  <div class="product-card-body">
+    <div class="product-card-category"><%= product.category %></div>
+    <div class="product-card-title"><%= product.title %></div>
+    <div class="product-card-price"><%= Number(product.price).toLocaleString('en-IN') %></div>
+    <div class="product-card-meta">
+      <span>📍 <%= product.location %></span>
+      <span><%= timeAgo(product.created_at) %></span>
+    </div>
+  </div>
+</a>

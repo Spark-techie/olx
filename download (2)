@@ -1,0 +1,66 @@
+<%- include('../partials/header') %>
+<main class="container" style="max-width:900px;margin:40px auto;padding:0 20px;">
+
+  <!-- Profile Header Card -->
+  <div class="card" style="padding:32px;margin-bottom:24px;">
+    <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+      <div style="width:80px;height:80px;border-radius:50%;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,#6c63ff,#a78bfa);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;color:#fff;">
+        <% if (profileUser.profile_image) { %>
+          <img src="/uploads/<%= profileUser.profile_image %>" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'"/>
+        <% } else { %>
+          <%= profileUser.full_name.charAt(0).toUpperCase() %>
+        <% } %>
+      </div>
+      <div style="flex:1;">
+        <h1 style="font-size:1.6rem;font-weight:800;margin-bottom:4px;"><%= profileUser.full_name %></h1>
+        <div style="color:var(--text-muted);font-size:.9rem;margin-bottom:4px;">📧 <%= profileUser.email %></div>
+        <div style="color:var(--text-muted);font-size:.9rem;margin-bottom:4px;">🎓 <%= profileUser.college_name %></div>
+        <% if (profileUser.phone) { %><div style="color:var(--text-muted);font-size:.9rem;">📞 <%= profileUser.phone %></div><% } %>
+        <% if (profileUser.bio) { %><p style="margin-top:10px;font-size:.9rem;color:var(--text-secondary)"><%= profileUser.bio %></p><% } %>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <a href="/profile/edit" class="btn btn-primary">✏️ Edit Profile</a>
+        <a href="/profile/my-ads" class="btn btn-secondary">📦 My Ads (<%= products.length %>)</a>
+        <a href="/profile/change-password" class="btn btn-secondary">🔒 Change Password</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">
+    <div class="card" style="padding:20px;text-align:center;">
+      <div style="font-size:2rem;font-weight:800;color:var(--primary)"><%= products.length %></div>
+      <div style="font-size:.8rem;color:var(--text-muted);font-weight:600;">Total Listings</div>
+    </div>
+    <div class="card" style="padding:20px;text-align:center;">
+      <div style="font-size:2rem;font-weight:800;color:#43e97b;"><%= products.filter(p=>p.status==='sold').length %></div>
+      <div style="font-size:.8rem;color:var(--text-muted);font-weight:600;">Items Sold</div>
+    </div>
+    <div class="card" style="padding:20px;text-align:center;">
+      <div style="font-size:2rem;font-weight:800;color:#f7971e;"><%= products.filter(p=>p.status==='active').length %></div>
+      <div style="font-size:.8rem;color:var(--text-muted);font-weight:600;">Active Ads</div>
+    </div>
+  </div>
+
+  <!-- Recent Listings -->
+  <div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;">
+    <h2 style="font-size:1.1rem;font-weight:700;">📦 Recent Listings</h2>
+    <a href="/profile/my-ads" class="btn btn-secondary btn-sm">View All</a>
+  </div>
+
+  <% if (products.length > 0) { %>
+    <div class="products-grid">
+      <% products.slice(0,4).forEach(product => { %>
+        <%- include('../partials/product-card', { product }) %>
+      <% }) %>
+    </div>
+  <% } else { %>
+    <div class="empty-state">
+      <div style="font-size:3rem;margin-bottom:12px;">📭</div>
+      <h3>No listings yet</h3>
+      <p>Start selling! Post your first ad.</p>
+      <a href="/products/new" class="btn btn-primary" style="margin-top:16px;">+ Post an Ad</a>
+    </div>
+  <% } %>
+</main>
+<%- include('../partials/footer') %>

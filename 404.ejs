@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title><%= title %></title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <%- include('../partials/admin-style') %>
+</head>
+<body>
+<%- include('../partials/admin-sidebar', {page}) %>
+<div class="main">
+  <%- include('../partials/admin-topbar') %>
+  <div class="content">
+    <%- include('../partials/admin-flash') %>
+
+    <div class="page-row">
+      <div class="section-title">📦 Products <span><%= total %> FOUND</span></div>
+    </div>
+
+    <!-- Filters -->
+    <form class="search-form" method="GET" action="/admin/products" style="margin-bottom:20px;background:var(--card);padding:16px;border-radius:var(--radius);border:1px solid var(--border);">
+      <input class="input" name="search" placeholder="Search title or seller..." value="<%= search %>" style="flex:1;min-width:180px;"/>
+      <select class="input" name="status" style="width:140px;">
+        <option value="">All Status</option>
+        <option value="active" <%= status==='active'?'selected':'' %>>Active</option>
+        <option value="sold" <%= status==='sold'?'selected':'' %>>Sold</option>
+      </select>
+      <select class="input" name="category" style="width:160px;">
+        <option value="">All Categories</option>
+        <% categories.forEach(c => { %>
+          <option value="<%= c.name %>" <%= category===c.name?'selected':'' %>><%= c.name %></option>
+        <% }) %>
+      </select>
+      <button class="btn btn-primary" type="submit"><i class="fas fa-filter"></i> Filter</button>
+      <a href="/admin/products" class="btn btn-ghost">Reset</a>
+    </form>
+
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr><th>Product</th><th>Seller</th><th>Price</th><th>Category</th><th>Status</th><th>Approved</th><th>Posted</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          <% products.forEach(p => { %>
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <% if (p.image_url) { %>
+                  <img src="/uploads/<%= p.image_url %>" style="width:40px;height:40px;object-fit:cover;border-radius:8px;flex-shrink:0;" onerror="this.style.display='none'"/>
+                <% } else { %>
+                  <div style="width:40px;height:40px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:1.2rem;">📦</div>
+                <% } %>
+                <div>
+                  <div class="truncate" style="max-width:160px;font-weight:600;font-size:.85rem"><%= p.title %></div>
+                  <div style="font-size:.72rem;color:var(--text3)"><%= p.location %></div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div style="font-size:.83rem;font-weight:500"><%= p.seller_name %></div>
+              <div style="font-size:.72rem;color:var(--text3)"><%= p.seller_email %></div>
+            </td>
+            <td class="mono" style="color:var(--accent3)">₹<%= parseFloat(p.price).toLocaleString() %></td>
+            <td><span class="badge badge-purple"><%= p.category %></span></td>
+            <td>
+              <% if (p.status==='active') { %>
+                <span class="badge badge-green">Active</span>
+              <% } else if (p.status==='sold') { %>
+                <span class="badge badge-yellow">Sold</span>
+              <% } else { %>
+                <span class="badge badge-red">Deleted</span>
+              <% } %>
+            </td>
+            <td>
+              <% if (p.is_approved) { %>
+                <span class="badge badge-green"><i class="fas fa-check"></i> Yes</span>
+              <% } else { %>
+                <span class="badge badge-red"><i class="fas fa-times"></i> No</span>
+              <% } %>
+            </td>
+            <td class="mono" style="font-size:.72rem;color:var(--text3)"><%= new Date(p.created_at).toLocaleDateString() %></td>
+            <td>
+              <div style="display:flex;gap:5px;flex-wrap:wrap;">
+                <a href="/products/<%= p.id %>" target="_blank" class="btn btn-ghost btn-sm"><i class="fas fa-eye"></i></a>
+                <% if (!p.is_approved) { %>
+                  <form method="POST" action="/admin/products/<%= p.id %>/approve" style="display:inline">
+                    <button class="btn btn-success btn-sm"><i class="fas fa-check"></i> Approve</button>
+                  </form>
+                <% } %>
+                <button class="btn btn-warning btn-sm" onclick="openRejectModal(<%= p.id %>, '<%= p.title.replace(/'/g,'').replace(/"/g,'') %>')">
+                  <i class="fas fa-times"></i> Reject
+                </button>
+                <button class="btn btn-danger btn-sm" onclick="confirmDeleteProduct(<%= p.id %>, '<%= p.title.replace(/'/g,'').replace(/"/g,'') %>')">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <% }) %>
+          <% if (!products.length) { %>
+          <tr><td colspan="8"><div class="empty"><i class="fas fa-box"></i><p>No products found</p></div></td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if (totalPages > 1) { %>
+    <div class="pagination">
+      <% for(let i=1;i<=totalPages;i++) { %>
+        <a href="?page=<%= i %>&search=<%= search %>&status=<%= status %>&category=<%= category %>" class="page-btn <%= currentPage===i?'active':'' %>"><%= i %></a>
+      <% } %>
+    </div>
+    <% } %>
+  </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal-overlay" id="rejectModal">
+  <div class="modal">
+    <h3>❌ Reject Product</h3>
+    <p style="font-size:.85rem;color:var(--text2);margin-bottom:16px">Product: <strong id="rejectProductName"></strong></p>
+    <form id="rejectForm" method="POST">
+      <div class="form-group">
+        <label>Rejection Reason</label>
+        <textarea class="input" name="reason" rows="3" placeholder="Why is this product being rejected?">Does not meet campus marketplace guidelines</textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('rejectModal')">Cancel</button>
+        <button type="submit" class="btn btn-danger"><i class="fas fa-times"></i> Reject & Remove</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<form id="deleteProductForm" method="POST" style="display:none"></form>
+
+<script>
+function openRejectModal(id, name) {
+  document.getElementById('rejectProductName').textContent = name;
+  document.getElementById('rejectForm').action = `/admin/products/${id}/reject`;
+  openModal('rejectModal');
+}
+function confirmDeleteProduct(id, name) {
+  if (confirm(`Permanently delete "${name}"?`)) {
+    const f = document.getElementById('deleteProductForm');
+    f.action = `/admin/products/${id}/delete`;
+    f.submit();
+  }
+}
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if(e.target===el) el.classList.remove('open'); });
+});
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+</script>
+</body>
+</html>
