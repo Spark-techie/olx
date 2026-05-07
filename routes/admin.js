@@ -18,7 +18,7 @@ router.post('/users/:id/delete', adminCtrl.deleteUser);
 router.get('/products', adminCtrl.getProducts);
 router.post('/products/:id/approve', adminCtrl.approveProduct);
 router.post('/products/:id/reject', adminCtrl.rejectProduct);
-router.post('/products/:id/delete', adminCtrl.adminDeleteProduct);
+router.post('/products/:id/delete', adminCtrl.deleteProduct);
 
 // Reports
 router.get('/reports', adminCtrl.getReports);
